@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { Plus, X, DollarSign, Calendar, FileText, ChevronDown, Check, Code, Palette, PenTool, Megaphone, BarChart3, Headphones, Users, Building2, Clock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/Button';
@@ -73,6 +74,7 @@ function CustomDropdown({
 }: CustomDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
 
   const selectedOption = options.find(option => option.value === value);
 
@@ -86,6 +88,18 @@ function CustomDropdown({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (isOpen && dropdownRef.current) {
+      const rect = dropdownRef.current.getBoundingClientRect();
+      setMenuStyle({
+        position: 'fixed',
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+      });
+    }
+  }, [isOpen]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -106,6 +120,50 @@ function CustomDropdown({
     }
   };
 
+  const dropdownMenu = isOpen ? ReactDOM.createPortal(
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      className="dropdown-menu w-full bg-gray-900 border border-gray-700 rounded-lg shadow-xl max-h-60 overflow-y-auto"
+      style={menuStyle}
+    >
+      {options.map((option) => (
+        <div
+          key={option.value}
+          className={`flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors ${
+            option.value === value 
+              ? 'bg-blue-600/20 text-blue-400' 
+              : 'hover:bg-gray-800 text-silver-100'
+          }`}
+          onClick={() => {
+            onChange(option.value);
+            setIsOpen(false);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onChange(option.value);
+              setIsOpen(false);
+            }
+          }}
+          tabIndex={0}
+          role="option"
+          aria-selected={option.value === value}
+        >
+          {option.icon && (
+            <span className="text-gray-400">{option.icon}</span>
+          )}
+          <span className="flex-1">{option.label}</span>
+          {option.value === value && (
+            <Check className="w-4 h-4 text-blue-400" />
+          )}
+        </div>
+      ))}
+    </motion.div>,
+    document.body
+  ) : null;
+
   return (
     <div className="relative" ref={dropdownRef}>
       <label className="block text-sm font-medium text-silver-200 mb-2">
@@ -116,7 +174,7 @@ function CustomDropdown({
       <div
         className={`relative w-full px-3 py-2 glass-card text-silver-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 rounded-lg cursor-pointer ${
           disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-black/30'
-        } ${error ? 'border-red-500' : 'border-gray-600'}`}
+        } ${error ? 'border-red-500' : 'border-gray-600'} ${selectedOption ? 'bg-blue-600/10 border-blue-500/30' : ''}`}
         onClick={() => !disabled && setIsOpen(!isOpen)}
         onKeyDown={handleKeyDown}
         tabIndex={disabled ? -1 : 0}
@@ -131,7 +189,7 @@ function CustomDropdown({
             {selectedOption?.icon && (
               <span className="text-gray-400">{selectedOption.icon}</span>
             )}
-            <span className={selectedOption ? 'text-silver-100' : 'text-gray-400'}>
+            <span className={selectedOption ? 'text-silver-100 font-medium' : 'text-gray-400'}>
               {selectedOption ? selectedOption.label : placeholder}
             </span>
           </div>
@@ -143,47 +201,7 @@ function CustomDropdown({
         </div>
       </div>
 
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          className="absolute z-50 w-full mt-1 bg-gray-900 border border-gray-700 rounded-lg shadow-xl max-h-60 overflow-y-auto"
-        >
-          {options.map((option) => (
-            <div
-              key={option.value}
-              className={`flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors ${
-                option.value === value 
-                  ? 'bg-blue-600/20 text-blue-400' 
-                  : 'hover:bg-gray-800 text-silver-100'
-              }`}
-              onClick={() => {
-                onChange(option.value);
-                setIsOpen(false);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  onChange(option.value);
-                  setIsOpen(false);
-                }
-              }}
-              tabIndex={0}
-              role="option"
-              aria-selected={option.value === value}
-            >
-              {option.icon && (
-                <span className="text-gray-400">{option.icon}</span>
-              )}
-              <span className="flex-1">{option.label}</span>
-              {option.value === value && (
-                <Check className="w-4 h-4 text-blue-400" />
-              )}
-            </div>
-          ))}
-        </motion.div>
-      )}
+      {dropdownMenu}
 
       {error && (
         <p className="text-sm text-red-400 mt-1 flex items-center gap-1">
@@ -209,11 +227,23 @@ export function PostJob() {
   const {
     register,
     handleSubmit,
+    control,
     watch,
+    setValue,
     formState: { errors }
   } = useForm<JobFormData>({ mode: 'onChange' });
 
+  useEffect(() => {
+    register('category', { required: 'Category is required.' });
+    register('experienceLevel', { required: 'Experience level is required.' });
+    register('projectLength', { required: 'Project length is required.' });
+  }, [register]);
+
   const budgetType = watch('budgetType');
+
+  // Debug: Log current form values
+  const currentValues = watch();
+  console.log('Current form values:', currentValues);
 
   const handleAddSkill = (skill: string) => {
     const trimmed = skill.trim();
@@ -408,46 +438,53 @@ export function PostJob() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <CustomDropdown
-                label="Category"
-                options={[
-                  { value: 'Web Development', label: 'Web Development', icon: <Code className="w-4 h-4" /> },
-                  { value: 'Mobile Development', label: 'Mobile Development', icon: <Code className="w-4 h-4" /> },
-                  { value: 'Design & Creative', label: 'Design & Creative', icon: <Palette className="w-4 h-4" /> },
-                  { value: 'Writing & Translation', label: 'Writing & Translation', icon: <PenTool className="w-4 h-4" /> },
-                  { value: 'Digital Marketing', label: 'Digital Marketing', icon: <Megaphone className="w-4 h-4" /> },
-                  { value: 'Data Science', label: 'Data Science', icon: <BarChart3 className="w-4 h-4" /> },
-                  { value: 'Admin Support', label: 'Admin Support', icon: <Headphones className="w-4 h-4" /> },
-                  { value: 'Customer Service', label: 'Customer Service', icon: <Users className="w-4 h-4" /> },
-                  { value: 'Sales & Marketing', label: 'Sales & Marketing', icon: <Megaphone className="w-4 h-4" /> },
-                  { value: 'Engineering & Architecture', label: 'Engineering & Architecture', icon: <Building2 className="w-4 h-4" /> }
-                ]}
-                value={watch('category')}
-                onChange={(value) => {
-                  // Update the form value
-                  const event = { target: { value } };
-                  register('category').onChange(event);
-                }}
-                placeholder="Select a category"
-                error={errors.category?.message}
-                required
+              <Controller
+                name="category"
+                control={control}
+                rules={{ required: 'Category is required' }}
+                render={({ field }) => (
+                  <CustomDropdown
+                    label="Category"
+                    options={[
+                      { value: 'Web Development', label: 'Web Development', icon: <Code className="w-4 h-4" /> },
+                      { value: 'Mobile Development', label: 'Mobile Development', icon: <Code className="w-4 h-4" /> },
+                      { value: 'Design & Creative', label: 'Design & Creative', icon: <Palette className="w-4 h-4" /> },
+                      { value: 'Writing & Translation', label: 'Writing & Translation', icon: <PenTool className="w-4 h-4" /> },
+                      { value: 'Digital Marketing', label: 'Digital Marketing', icon: <Megaphone className="w-4 h-4" /> },
+                      { value: 'Data Science', label: 'Data Science', icon: <BarChart3 className="w-4 h-4" /> },
+                      { value: 'Admin Support', label: 'Admin Support', icon: <Headphones className="w-4 h-4" /> },
+                      { value: 'Customer Service', label: 'Customer Service', icon: <Users className="w-4 h-4" /> },
+                      { value: 'Sales & Marketing', label: 'Sales & Marketing', icon: <Megaphone className="w-4 h-4" /> },
+                      { value: 'Engineering & Architecture', label: 'Engineering & Architecture', icon: <Building2 className="w-4 h-4" /> }
+                    ]}
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="Select a category"
+                    error={errors.category?.message}
+                    required
+                  />
+                )}
               />
 
-              <CustomDropdown
-                label="Experience Level"
-                options={[
-                  { value: 'entry', label: 'Entry Level', icon: <Users className="w-4 h-4" /> },
-                  { value: 'intermediate', label: 'Intermediate', icon: <Code className="w-4 h-4" /> },
-                  { value: 'expert', label: 'Expert', icon: <Building2 className="w-4 h-4" /> }
-                ]}
-                value={watch('experienceLevel')}
-                onChange={(value) => {
-                  const event = { target: { value } };
-                  register('experienceLevel').onChange(event);
-                }}
-                placeholder="Select experience level"
-                error={errors.experienceLevel?.message}
-                required
+              <Controller
+                name="experienceLevel"
+                control={control}
+                rules={{ required: 'Experience level is required' }}
+                render={({ field }) => (
+                  <CustomDropdown
+                    label="Experience Level"
+                    options={[
+                      { value: 'entry', label: 'Entry Level', icon: <Users className="w-4 h-4" /> },
+                      { value: 'intermediate', label: 'Intermediate', icon: <Code className="w-4 h-4" /> },
+                      { value: 'expert', label: 'Expert', icon: <Building2 className="w-4 h-4" /> }
+                    ]}
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="Select experience level"
+                    error={errors.experienceLevel?.message}
+                    required
+                  />
+                )}
               />
             </div>
           </div>
@@ -645,22 +682,26 @@ export function PostJob() {
                 {...register('deadline', { required: 'Deadline is required' })}
               />
 
-              <CustomDropdown
-                label="Project Length"
-                options={[
-                  { value: 'less_than_1_month', label: 'Less than 1 month', icon: <Clock className="w-4 h-4" /> },
-                  { value: '1_to_3_months', label: '1 to 3 months', icon: <Clock className="w-4 h-4" /> },
-                  { value: '3_to_6_months', label: '3 to 6 months', icon: <Clock className="w-4 h-4" /> },
-                  { value: 'more_than_6_months', label: 'More than 6 months', icon: <Clock className="w-4 h-4" /> }
-                ]}
-                value={watch('projectLength')}
-                onChange={(value) => {
-                  const event = { target: { value } };
-                  register('projectLength').onChange(event);
-                }}
-                placeholder="Select project length"
-                error={errors.projectLength?.message}
-                required
+              <Controller
+                name="projectLength"
+                control={control}
+                rules={{ required: 'Project length is required' }}
+                render={({ field }) => (
+                  <CustomDropdown
+                    label="Project Length"
+                    options={[
+                      { value: 'less_than_1_month', label: 'Less than 1 month', icon: <Clock className="w-4 h-4" /> },
+                      { value: '1_to_3_months', label: '1 to 3 months', icon: <Clock className="w-4 h-4" /> },
+                      { value: '3_to_6_months', label: '3 to 6 months', icon: <Clock className="w-4 h-4" /> },
+                      { value: 'more_than_6_months', label: 'More than 6 months', icon: <Clock className="w-4 h-4" /> }
+                    ]}
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="Select project length"
+                    error={errors.projectLength?.message}
+                    required
+                  />
+                )}
               />
             </div>
           </div>

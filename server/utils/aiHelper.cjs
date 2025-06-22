@@ -1,12 +1,16 @@
 const OpenAI = require('openai');
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Only initialize OpenAI if API key is available
+let openai = null;
+if (process.env.OPENAI_API_KEY) {
+  openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+}
 
 const generateProposal = async ({ jobTitle, jobDescription, userSkills, currentProposal, freelancerName }) => {
   try {
-    if (!process.env.OPENAI_API_KEY) {
+    if (!process.env.OPENAI_API_KEY || !openai) {
       console.error('[AI] Missing OpenAI API key. Set OPENAI_API_KEY in your .env');
       throw new Error('OpenAI API key not configured');
     }

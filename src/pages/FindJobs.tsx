@@ -5,7 +5,7 @@ import { Button } from '../components/ui/Button';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { FileText, MessageCircle } from 'lucide-react';
+import { FileText, MessageCircle, X, DollarSign, Clock, User } from 'lucide-react';
 import { Job } from '../types';
 import { StartConversation } from '../components/chat/StartConversation';
 
@@ -156,34 +156,104 @@ export function FindJobs() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-silver-100 mb-6">Find Jobs</h1>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-silver-100 mb-2">Find Jobs</h1>
+        <p className="text-silver-400">Browse available opportunities and submit your proposals</p>
+      </div>
+      
       {loading ? (
-        <div className="text-silver-400">Loading jobs...</div>
+        <div className="flex items-center justify-center py-12">
+          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <span className="ml-3 text-silver-400">Loading jobs...</span>
+        </div>
       ) : jobs.length === 0 ? (
-        <div className="text-silver-400">No jobs found.</div>
+        <Card className="p-12 text-center">
+          <div className="w-16 h-16 bg-gray-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FileText className="w-8 h-8 text-gray-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-silver-100 mb-2">No Jobs Available</h2>
+          <p className="text-silver-400">Check back later for new opportunities.</p>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {jobs.map((job: Job) => (
-            <Card key={job._id} hover onClick={() => openJobModal(job)}>
-              <h2 className="text-xl font-semibold text-silver-100 mb-2">{job.title}</h2>
-              <p className="text-silver-400 mb-2">{job.description?.slice(0, 100)}...</p>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {job.skills?.map((skill: string) => (
-                  <span key={skill} className="bg-blue-600/20 text-blue-400 px-2 py-1 rounded text-xs">{skill}</span>
-                ))}
-              </div>
-              <div className="text-silver-400 text-sm mb-2">Budget: ${job.budget?.min} - ${job.budget?.max} ({job.budget?.type})</div>
-              <Button size="sm" className="mt-2">View Details</Button>
-            </Card>
+            <div 
+              key={job._id} 
+              className="group cursor-pointer"
+              onClick={() => openJobModal(job)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  openJobModal(job);
+                }
+              }}
+              tabIndex={0}
+              role="button"
+              aria-label={`View details for ${job.title}`}
+            >
+              <Card className="h-full transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-500/10 group-hover:border-blue-500/50">
+                <div className="p-6">
+                  <h2 className="text-xl font-semibold text-silver-100 mb-3 line-clamp-2 group-hover:text-blue-400 transition-colors">
+                    {job.title}
+                  </h2>
+                  
+                  <p className="text-silver-400 mb-4 line-clamp-3 text-sm leading-relaxed">
+                    {job.description}
+                  </p>
+                  
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {job.skills?.slice(0, 3).map((skill: string) => (
+                      <span key={skill} className="bg-blue-600/20 text-blue-400 px-2 py-1 rounded-full text-xs font-medium border border-blue-500/30">
+                        {skill}
+                      </span>
+                    ))}
+                    {job.skills && job.skills.length > 3 && (
+                      <span className="bg-gray-600/20 text-gray-400 px-2 py-1 rounded-full text-xs">
+                        +{job.skills.length - 3} more
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center gap-2 text-green-400 text-sm">
+                      <DollarSign className="w-4 h-4" />
+                      <span>${job.budget?.min?.toLocaleString()} - ${job.budget?.max?.toLocaleString()} ({job.budget?.type})</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-silver-400 text-sm">
+                      <Clock className="w-4 h-4" />
+                      <span>Posted {new Date(job.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-silver-400 text-sm">
+                      <User className="w-4 h-4" />
+                      <span>Client</span>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="secondary"
+                      className="group-hover:bg-blue-600 group-hover:text-white transition-all duration-200"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openJobModal(job);
+                      }}
+                    >
+                      View Details
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            </div>
           ))}
         </div>
       )}
 
       {/* Job Details Modal */}
       {showModal && selectedJob && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4">
           <div
-            className="bg-gradient-to-br from-gray-900 to-black rounded-2xl border border-gray-700/50 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative outline-none shadow-2xl"
+            className="bg-gradient-to-br from-gray-900 to-black rounded-2xl border border-gray-700/50 max-w-4xl w-full max-h-[90vh] overflow-y-auto relative outline-none shadow-2xl"
             ref={modalRef}
             tabIndex={-1}
             role="dialog"
@@ -192,26 +262,27 @@ export function FindJobs() {
           >
             {/* Header */}
             <div className="sticky top-0 bg-gradient-to-r from-gray-900 to-black rounded-t-2xl border-b border-gray-700/50 p-6">
-              <button
-                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-full transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                onClick={() => setShowModal(false)}
-                aria-label="Close bid modal"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-white pr-8">{selectedJob.title}</h2>
-                <Button
-                  onClick={() => setShowMessageModal(true)}
-                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
-                  size="sm"
-                >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Message Client
-                </Button>
+                <h2 className="text-2xl font-bold text-white pr-8 line-clamp-2">{selectedJob.title}</h2>
+                <div className="flex items-center gap-3">
+                  <Button
+                    onClick={() => setShowMessageModal(true)}
+                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+                    size="sm"
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Message Client
+                  </Button>
+                  <Button
+                    onClick={() => setShowModal(false)}
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-400 hover:text-white hover:bg-gray-700/50"
+                    aria-label="Close modal"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
               </div>
               
               <div className="flex flex-wrap gap-2 mb-3">
@@ -222,12 +293,14 @@ export function FindJobs() {
                 ))}
               </div>
               
-              <div className="flex items-center gap-4 text-sm">
+              <div className="flex items-center gap-6 text-sm">
                 <div className="flex items-center gap-2 text-green-400">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                  </svg>
-                  <span>Budget: ${selectedJob.budget?.min} - ${selectedJob.budget?.max} ({selectedJob.budget?.type})</span>
+                  <DollarSign className="w-4 h-4" />
+                  <span>Budget: ${selectedJob.budget?.min?.toLocaleString()} - ${selectedJob.budget?.max?.toLocaleString()} ({selectedJob.budget?.type})</span>
+                </div>
+                <div className="flex items-center gap-2 text-silver-400">
+                  <Clock className="w-4 h-4" />
+                  <span>Posted {new Date(selectedJob.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>
             </div>
@@ -352,26 +425,35 @@ export function FindJobs() {
 
             {/* Footer */}
             <div className="sticky bottom-0 bg-gradient-to-t from-gray-900 to-black rounded-b-2xl border-t border-gray-700/50 p-6">
-              <Button
-                onClick={handleBidSubmit}
-                loading={submitting}
-                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-3 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition-all duration-200"
-                disabled={!bidAmount || !proposal || submitting}
-              >
-                {submitting ? (
-                  <div className="flex items-center gap-2">
-                    <span className="animate-spin inline-block w-4 h-4 border-2 border-t-transparent border-white rounded-full"></span>
-                    Submitting Bid...
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                    </svg>
-                    Submit Bid
-                  </div>
-                )}
-              </Button>
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => setShowModal(false)}
+                  variant="secondary"
+                  className="flex-1 bg-gray-700 hover:bg-gray-600 text-white"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleBidSubmit}
+                  loading={submitting}
+                  className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold"
+                  disabled={!bidAmount || !proposal || submitting}
+                >
+                  {submitting ? (
+                    <div className="flex items-center gap-2">
+                      <span className="animate-spin inline-block w-4 h-4 border-2 border-t-transparent border-white rounded-full"></span>
+                      Submitting Bid...
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                      </svg>
+                      Submit Bid
+                    </div>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -379,7 +461,7 @@ export function FindJobs() {
 
       {/* Start Conversation Modal */}
       {showMessageModal && selectedJob && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4">
           <StartConversation
             participantId={selectedJob.clientId || ''}
             participantName="Job Client"

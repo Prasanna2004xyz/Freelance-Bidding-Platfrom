@@ -22,7 +22,7 @@ export function AdminDashboard() {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.get('/api/admin/users', { withCredentials: true });
+      const res = await axios.get('/admin/users', { withCredentials: true });
       setUsers(res.data.data);
     } catch (e) {
       setError('Failed to fetch users');
@@ -35,10 +35,10 @@ export function AdminDashboard() {
     setActionLoading(id);
     try {
       if (banned) {
-        await axios.put(`/api/admin/users/${id}/unban`, {}, { withCredentials: true });
+        await axios.put(`/admin/users/${id}/unban`, {}, { withCredentials: true });
         toast.success('User unbanned');
       } else {
-        await axios.put(`/api/admin/users/${id}/ban`, {}, { withCredentials: true });
+        await axios.put(`/admin/users/${id}/ban`, {}, { withCredentials: true });
         toast.success('User banned');
       }
       fetchUsers();

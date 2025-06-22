@@ -133,7 +133,7 @@ export function Dashboard() {
     setJobRecsLoading(true);
     setJobRecsError('');
     try {
-      const res = await axios.get('/api/jobs/recommendations', { withCredentials: true });
+      const res = await axios.get('/jobs/recommendations', { withCredentials: true });
       setJobRecs(res.data.data);
     } catch {
       setJobRecsError('Failed to load recommendations');
@@ -146,7 +146,7 @@ export function Dashboard() {
     setSkillsLoading(true);
     setSkillsError('');
     try {
-      const res = await axios.get('/api/jobs/trending-skills', { withCredentials: true });
+      const res = await axios.get('/jobs/trending-skills', { withCredentials: true });
       setTrendingSkills(res.data.data);
     } catch {
       setSkillsError('Failed to load trending skills');

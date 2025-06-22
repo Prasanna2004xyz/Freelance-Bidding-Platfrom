@@ -80,6 +80,51 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Job Recommendations for freelancers
+router.get('/recommendations', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'freelancer') {
+      return res.status(403).json({ success: false, message: 'Only freelancers get recommendations' });
+    }
+    const userSkills = req.user.skills || [];
+    if (!userSkills.length) {
+      return res.json({ success: true, data: [] });
+    }
+    // Find jobs that match at least one skill
+    const jobs = await Job.find({
+      status: 'open',
+      skills: { $in: userSkills }
+    })
+      .sort({ createdAt: -1 })
+      .limit(10);
+    res.json({ success: true, data: jobs });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch recommendations', error: error.message });
+  }
+});
+
+// Trending Skills (from recent jobs)
+router.get('/trending-skills', auth, async (req, res) => {
+  try {
+    // Get last 30 jobs
+    const jobs = await Job.find({}).sort({ createdAt: -1 }).limit(30);
+    const skillCounts = {};
+    jobs.forEach(job => {
+      (job.skills || []).forEach(skill => {
+        skillCounts[skill] = (skillCounts[skill] || 0) + 1;
+      });
+    });
+    // Sort skills by frequency
+    const trending = Object.entries(skillCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([skill]) => skill);
+    res.json({ success: true, data: trending });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch trending skills', error: error.message });
+  }
+});
+
 // Get single job by ID
 router.get('/:id', async (req, res) => {
   try {
@@ -290,51 +335,6 @@ router.get('/client/:clientId', async (req, res) => {
       message: 'Failed to fetch client jobs',
       error: error.message
     });
-  }
-});
-
-// Job Recommendations for freelancers
-router.get('/recommendations', auth, async (req, res) => {
-  try {
-    if (req.user.role !== 'freelancer') {
-      return res.status(403).json({ success: false, message: 'Only freelancers get recommendations' });
-    }
-    const userSkills = req.user.skills || [];
-    if (!userSkills.length) {
-      return res.json({ success: true, data: [] });
-    }
-    // Find jobs that match at least one skill
-    const jobs = await Job.find({
-      status: 'open',
-      skills: { $in: userSkills }
-    })
-      .sort({ createdAt: -1 })
-      .limit(10);
-    res.json({ success: true, data: jobs });
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'Failed to fetch recommendations', error: error.message });
-  }
-});
-
-// Trending Skills (from recent jobs)
-router.get('/trending-skills', auth, async (req, res) => {
-  try {
-    // Get last 30 jobs
-    const jobs = await Job.find({}).sort({ createdAt: -1 }).limit(30);
-    const skillCounts = {};
-    jobs.forEach(job => {
-      (job.skills || []).forEach(skill => {
-        skillCounts[skill] = (skillCounts[skill] || 0) + 1;
-      });
-    });
-    // Sort skills by frequency
-    const trending = Object.entries(skillCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([skill]) => skill);
-    res.json({ success: true, data: trending });
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'Failed to fetch trending skills', error: error.message });
   }
 });
 

@@ -9,7 +9,11 @@ import {
   Star,
   Zap,
   Shield,
-  Globe
+  Globe,
+  CheckCircle,
+  TrendingUp,
+  Award,
+  Clock
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -19,30 +23,43 @@ export function Home() {
     {
       icon: Users,
       title: 'Connect with Talent',
-      description: 'Find skilled freelancers or discover your next opportunity',
+      description: 'Find skilled freelancers or discover your next opportunity with our advanced matching system',
+      color: 'from-blue-500/20 to-purple-500/20',
     },
     {
       icon: Shield,
       title: 'Secure Payments',
-      description: 'Protected transactions with milestone-based payments',
+      description: 'Protected transactions with milestone-based payments and escrow protection',
+      color: 'from-green-500/20 to-emerald-500/20',
     },
     {
       icon: MessageCircle,
       title: 'Real-time Communication',
-      description: 'Chat instantly with clients and freelancers',
+      description: 'Chat instantly with clients and freelancers using our integrated messaging system',
+      color: 'from-purple-500/20 to-pink-500/20',
     },
     {
       icon: Zap,
       title: 'AI-Powered Proposals',
-      description: 'Generate winning proposals with AI assistance',
+      description: 'Generate winning proposals with AI assistance and smart recommendations',
+      color: 'from-orange-500/20 to-red-500/20',
     },
   ];
 
   const stats = [
-    { label: 'Active Users', value: '10K+' },
-    { label: 'Projects Completed', value: '25K+' },
-    { label: 'Success Rate', value: '95%' },
-    { label: 'Countries', value: '50+' },
+    { label: 'Active Users', value: '10K+', icon: Users },
+    { label: 'Projects Completed', value: '25K+', icon: CheckCircle },
+    { label: 'Success Rate', value: '95%', icon: TrendingUp },
+    { label: 'Countries', value: '50+', icon: Globe },
+  ];
+
+  const benefits = [
+    'No hidden fees or commissions',
+    '24/7 customer support',
+    'Advanced project tracking',
+    'Secure payment protection',
+    'Professional dispute resolution',
+    'Mobile app available'
   ];
 
   return (
@@ -57,33 +74,63 @@ export function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
+              className="w-24 h-24 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-6"
+            >
+              <Briefcase className="w-12 h-12 text-blue-400" />
+            </motion.div>
+            
             <h1 className="text-5xl md:text-7xl font-bold mb-6">
               <span className="gradient-text">Freelance</span>
               <br />
               <span className="text-silver-100">Your Way</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-silver-300 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl md:text-2xl text-silver-300 mb-8 max-w-3xl mx-auto leading-relaxed">
               Connect with top talent or find your next opportunity on the world's 
-              most advanced freelancing platform
+              most advanced freelancing platform. Secure, fast, and reliable.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               <Link to="/register?role=client">
-                <Button size="lg" className="w-full sm:w-auto">
-                  Hire Talent <ArrowRight className="ml-2 w-5 h-5 inline-block" />
+                <Button size="lg" className="w-full sm:w-auto" icon={<Users className="w-5 h-5" />}>
+                  Hire Talent
                 </Button>
               </Link>
               
               <Link to="/register?role=freelancer">
-                <Button variant="secondary" size="lg" className="w-full sm:w-auto">
-                  Find Work <Briefcase className="ml-2 w-5 h-5 inline-block" />
+                <Button variant="secondary" size="lg" className="w-full sm:w-auto" icon={<Briefcase className="w-5 h-5" />}>
+                  Find Work
                 </Button>
               </Link>
             </div>
+
+            {/* Trust indicators */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="flex flex-wrap justify-center items-center gap-6 text-silver-400 text-sm"
+            >
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-green-400" />
+                <span>Secure & Trusted</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-blue-400" />
+                <span>24/7 Support</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Award className="w-4 h-4 text-yellow-400" />
+                <span>Quality Guaranteed</span>
+              </div>
+            </motion.div>
           </motion.div>
 
-          {/* Floating Elements */}
+          {/* Enhanced Floating Elements */}
           <motion.div
             animate={{ y: [-20, 0, -20] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
@@ -112,8 +159,11 @@ export function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="text-center"
+                className="text-center group"
               >
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                  <stat.icon className="w-6 h-6 text-blue-400" />
+                </div>
                 <div className="text-3xl md:text-4xl font-bold gradient-text mb-2">
                   {stat.value}
                 </div>
@@ -138,7 +188,7 @@ export function Home() {
               Why Choose <span className="gradient-text">FreelanceHub</span>
             </h2>
             <p className="text-xl text-silver-400 max-w-2xl mx-auto">
-              Experience the future of freelancing with our cutting-edge platform
+              Experience the future of freelancing with our cutting-edge platform designed for success
             </p>
           </motion.div>
 
@@ -150,17 +200,50 @@ export function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
               >
-                <Card hover className="h-full text-center">
-                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Card hover className="h-full text-center group">
+                  <div className={`w-16 h-16 ${feature.color} rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
                     <feature.icon className="w-8 h-8 text-blue-400" />
                   </div>
                   <h3 className="text-xl font-semibold text-silver-100 mb-3">
                     {feature.title}
                   </h3>
-                  <p className="text-silver-400">
+                  <p className="text-silver-400 leading-relaxed">
                     {feature.description}
                   </p>
                 </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section className="py-16 px-4">
+        <div className="max-w-4xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            className="text-center mb-12"
+          >
+            <h3 className="text-2xl md:text-3xl font-bold text-silver-100 mb-4">
+              Everything You Need to Succeed
+            </h3>
+            <p className="text-silver-400">
+              Join thousands of professionals who trust FreelanceHub for their projects
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {benefits.map((benefit, index) => (
+              <motion.div
+                key={benefit}
+                initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="flex items-center gap-3"
+              >
+                <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
+                <span className="text-silver-300">{benefit}</span>
               </motion.div>
             ))}
           </div>
@@ -178,15 +261,15 @@ export function Home() {
             <h2 className="text-3xl md:text-4xl font-bold text-silver-100 mb-4">
               Ready to Get Started?
             </h2>
-            <p className="text-xl text-silver-400 mb-8">
-              Join thousands of professionals already using FreelanceHub
+            <p className="text-xl text-silver-400 mb-8 max-w-2xl mx-auto">
+              Join thousands of professionals already using FreelanceHub. 
+              Start your journey today and discover endless opportunities.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/register">
-                <Button size="lg" className="w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto" icon={<ArrowRight className="w-5 h-5" />} iconPosition="right">
                   Sign Up Free
-                  <ArrowRight className="ml-2 w-5 h-5 inline-block" />
                 </Button>
               </Link>
               
